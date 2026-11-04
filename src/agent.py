@@ -203,7 +203,7 @@ if __name__ == "__main__":
         "Qual o horário de funcionamento da loja física?",
         "Quais itens estão na promoção?",
         "Gostaria de fazer uma reclamação, porque meu pedido de código 20 foi cancelado?",
-        "Gostaria de saber sobre o meu pedido de número 2",
+        "Gostaria de saber sobre o meu pedido de número 7",
         "Vocês possuem o violão da Shelby com cordas de Nylon?",
         "Como funciona a entrega para outras cidades?",
     ]
