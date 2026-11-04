@@ -1,0 +1,80 @@
+=================================================================
+   🎸 EMPÓRIO DA MÚSICA - CUSTOMER SERVICE ASSISTANT 🎹
+   Type 'exit' or 'sair' to end the session.
+=================================================================
+
+[ASSISTANT]: Olá! Seja bem-vindo ao Empório da Música! Como posso te ajudar hoje?
+
+[YOU]: quais os tipos de instrumentos que vocês vendem?
+
+[ASSISTANT]:
+Olá! Que bom ter você por aqui no Empório da Música. 😊
+
+Para te ajudar a encontrar o instrumento perfeito, temos uma seleção bem variada de categorias disponíveis em nosso estoque. Atualmente, você pode conferir nossas opções de:
+
+- **Violões**
+- **Ukuleles**
+- **Guitarras**
+- **Baixos**
+- **Baterias e Percussão**
+- **Teclados e Pianos**
+
+Gostaria de saber mais sobre alguma dessas categorias específicas ou tem algum estilo de música em mente para eu te indicar o modelo ideal?
+
+-----------------------------------------------------------------
+[YOU]: pode me falar quais baixos você possuem?
+
+[ASSISTANT]:
+Claro! Temos algumas opções de baixos elétricos disponíveis no estoque agora. Dá uma olhada:
+
+- **Music Man Bass 1X Electric Bass** – R$ 8.732,00 (Cor: Red)
+- **Yamaha Bass 3X Electric Bass** – R$ 11.445,00 (Cor: Black)
+- **Music Man Bass 4X Electric Bass** – R$ 7.157,00 (Cor: Black)
+
+Todos são modelos de 4 cordas com corpo em Ash e braço em Maple. Quer que eu detalhe as especificações técnicas de algum deles ou prefere saber mais sobre a sonoridade de cada marca?
+
+-----------------------------------------------------------------
+[YOU]: poderia detalhar o music man?
+
+[ASSISTANT]:
+Com certeza! O Music Man é uma escolha excelente para quem busca um baixo com um timbre muito característico e versátil. Ele é conhecido por entregar um som encorpado, com graves profundos e médios presentes, o que faz com que ele se destaque muito bem tanto em gravações quanto ao vivo. A construção em Ash para o corpo e Maple para o braço garante uma durabilidade impressionante e uma resposta rápida nas cordas, ideal para quem gosta de tocar com precisão e conforto.
+
+No nosso estoque, temos duas versões desse modelo disponíveis. A primeira é a **Music Man Bass 1X Electric Bass**, que vem na cor **Red** e está por **R$ 8.732,00**. A segunda opção é a **Music Man Bass 4X Electric Bass**, na cor **Black**, com um preço mais acessível de **R$ 7.157,00**. Ambas são de 4 cordas e compartilham a mesma qualidade de construção e acabamento.
+
+Gostaria de saber mais sobre as especificações técnicas detalhadas de alguma dessas duas versões, ou prefere que eu verifique se há alguma promoção ativa para elas?
+
+-----------------------------------------------------------------
+[YOU]: sim, poderia me informar quais itens estão em promoção 
+
+[ASSISTANT]:
+Claro! Temos algumas ofertas muito boas rolando agora. Dá uma olhada no que está em destaque:
+
+- **Kalani KAL-700T Tenor Natural** – R$ 323,10 (Cor: Natural)
+- **Ohana CK-20 Concert Natural** – R$ 439,20 (Cor: Natural)
+- **Crafter HT-100 Folk Aço Natural** – R$ 1.967,18 (Cor: Natural)
+- **Taylor 110e Dreadnought Natural** – R$ 5.519,08 (Cor: Natural)
+
+Lembrando que esses descontos são exclusivos para os itens listados e não são cumulativos com outras ofertas, como o desconto do PIX. As promoções estão sujeitas à disponibilidade de estoque, então se algum desses chamar sua atenção, vale a pena garantir o seu logo!
+
+Gostaria de saber mais detalhes sobre algum desses instrumentos ou prefere ver outras opções?
+
+-----------------------------------------------------------------
+[YOU]: qual o prazo de entrega para outras cidades?
+
+[ASSISTANT]:
+Olá! Para envios para outras cidades, utilizamos os Correios (PAC e SEDEX) e a transportadora Jadlog. Os prazos estimados são os seguintes:
+
+- **PAC (Correios):** 5 a 12 dias úteis
+- **SEDEX (Correios):** 2 a 5 dias úteis
+- **Jadlog:** 3 a 8 dias úteis
+
+O valor do frete é calculado automaticamente com base no CEP de destino, peso e dimensões do produto. Vale lembrar que todos os envios incluem seguro contra perdas ou danos.
+
+Caso o instrumento seja de grande porte (como baterias acústicas, pianos digitais ou contrabaixos), pode ser necessário uma cotação individual de frete especial.
+
+Posso ajudar com mais alguma dúvida sobre as entregas ou sobre os instrumentos?
+
+-----------------------------------------------------------------
+[YOU]: sair                  
+
+[ASSISTANT]: Obrigado por conversar com o Empório da Música! Até logo! 🎶

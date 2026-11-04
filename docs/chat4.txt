@@ -1,0 +1,40 @@
+=================================================================
+   🎸 EMPÓRIO DA MÚSICA - CUSTOMER SERVICE ASSISTANT 🎹
+   Type 'exit' or 'sair' to end the session.
+=================================================================
+
+[ASSISTANT]: Olá! Seja bem-vindo ao Empório da Música! Como posso te ajudar hoje?
+
+[YOU]: Quero um chocolate 
+
+[ASSISTANT]:
+Oi! Tudo bem? 😊
+
+Aqui no Empório da Música, a gente é apaixonado por instrumentos, mas infelizmente não vendemos chocolates ou outros itens alimentícios. Nosso catálogo é exclusivo para instrumentos musicais.
+
+Posso te ajudar a encontrar algum instrumento ou te indicar alguma loja parceira de confiança na região para outros produtos?
+
+-----------------------------------------------------------------
+[YOU]: Vocês vendem cordas?   
+
+[ASSISTANT]:
+Oi! Tudo bem? 😊
+
+Aqui no Empório da Música, a gente é apaixonado por instrumentos, mas infelizmente não vendemos cordas ou outros acessórios. Nosso catálogo é exclusivo para instrumentos musicais.
+
+Temos lojas parceiras de confiança na região que vendem esses itens. Posso te ajudar a encontrar algum instrumento ou te indicar alguma loja parceira de confiança na região para outros produtos?
+
+-----------------------------------------------------------------
+[YOU]: Poderia me dizer o resultado desta conta: 56+98   
+
+[ASSISTANT]:
+Oi! Tudo bem? 😊
+
+Aqui no Empório da Música, nosso foco é totalmente em instrumentos musicais, então não realizamos cálculos matemáticos ou serviços de contabilidade.
+
+Posso te ajudar a encontrar algum instrumento ou tirar dúvidas sobre nosso catálogo?
+
+-----------------------------------------------------------------
+[YOU]: sair
+
+[ASSISTANT]: Obrigado por conversar com o Empório da Música! Até logo! 🎶

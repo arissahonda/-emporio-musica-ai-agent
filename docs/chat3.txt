@@ -1,0 +1,58 @@
+=================================================================
+   🎸 EMPÓRIO DA MÚSICA - CUSTOMER SERVICE ASSISTANT 🎹
+   Type 'exit' or 'sair' to end the session.
+=================================================================
+
+[ASSISTANT]: Olá! Seja bem-vindo ao Empório da Música! Como posso te ajudar hoje?
+
+[YOU]: Gostaria de saber o status do meu último pedido
+
+[ASSISTANT]:
+Olá! Tudo bem? Seja muito bem-vindo ao Empório da Música. 🎸
+
+Para que eu possa verificar o status do seu último pedido com precisão, poderia me informar o seu **nome completo** ou o **número do telefone** cadastrado na loja?
+
+Assim que você me passar esses dados, eu consulto nosso sistema e te retorno com todas as informações sobre a entrega e o pagamento. Fico no aguardo!
+
+-----------------------------------------------------------------
+[YOU]: Thiago Barbosa Lima
+
+[ASSISTANT]:
+Olá, Thiago! Tudo bem?
+
+Consultei nosso sistema e encontrei seus pedidos. O seu **último pedido** (realizado em 08/03/2026) está com o status de **cancelado**.
+
+Para ser transparente com você, o motivo do cancelamento registrado no sistema foi: **"Endereço de entrega inválido informado pelo cliente"**.
+
+Como esse pedido foi cancelado, não há código de rastreio ou data de entrega prevista. Se você ainda tiver interesse em adquirir os itens que estavam nesse pedido (a guitarra Shelby e o violão Giannini), posso verificar a disponibilidade atual no estoque para fazermos um novo pedido com o endereço correto.
+
+Posso ajudar com mais alguma coisa?
+
+-----------------------------------------------------------------
+[YOU]: Gostaria de registrar uma reclamação sobre isso
+
+[ASSISTANT]:
+Olá, Thiago. Sinto muito que essa situação tenha te causado transtorno. Entendo perfeitamente a sua frustração, especialmente quando se trata de um item que você já estava ansioso para receber.
+
+Para que eu possa registrar essa reclamação formalmente e encaminhar para o nosso responsável de suporte, poderia me informar brevemente qual foi o ponto específico que mais te incomodou? Foi a comunicação sobre o cancelamento, o tempo que levou para resolver ou outro aspecto?
+
+Assim que eu registrar sua insatisfação, informo que nossa equipe de suporte possui um prazo de retorno de até **24 horas úteis** para te dar uma resposta oficial.
+
+Enquanto isso, se quiser, posso já verificar a disponibilidade atual da guitarra Shelby e do violão Giannini para que, assim que resolvermos essa pendência, possamos agilizar seu novo pedido com o endereço correto. Como prefere seguir?
+
+-----------------------------------------------------------------
+[YOU]: Quando preenchi as minhas informações o site não avisou que o endereço estava errado.
+
+[ASSISTANT]:
+Entendo perfeitamente, Thiago. É uma frustração muito válida, especialmente quando o sistema não valida os dados no momento da compra e só informa o erro depois.
+
+Já registrei essa observação especificamente na sua reclamação: **a falta de validação em tempo real do endereço no site**. Vou destacar esse ponto para a nossa equipe de suporte e também para o time de tecnologia, para que possamos melhorar essa experiência e evitar que isso aconteça com outros clientes (e com você no futuro).
+
+Lembrando que, como combinado, nossa equipe de suporte tem um prazo de até **24 horas úteis** para te dar um retorno oficial sobre essa demanda.
+
+Enquanto isso, quer que eu já verifique a disponibilidade atual da guitarra Shelby e do violão Giannini para que, assim que tudo estiver resolvido, possamos agilizar seu novo pedido com o endereço correto?
+
+-----------------------------------------------------------------
+[YOU]: sair
+
+[ASSISTANT]: Obrigado por conversar com o Empório da Música! Até logo! 🎶
