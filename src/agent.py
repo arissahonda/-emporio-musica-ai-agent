@@ -1,55 +1,74 @@
+import re
 import sqlite3
 from database import init_db
 from tools import search_store_policies
+from llm import GroqClient  # Use GeminiClient or GroqClient based on your active provider
 
 # =====================================================================
-# 1. SYSTEM PROMPT WITH DATABASE SCHEMA KNOWLEDGE
+# SYSTEM PROMPT IN PORTUGUESE (STORE RULES, PERSONA & POLICIES)
 # =====================================================================
 SYSTEM_PROMPT = """
-You are the customer service AI assistant for "Empório da Música", a specialized musical instrument store located in Campo Grande, MS, Brazil.
+Você é o assistente virtual de atendimento ao cliente do "Empório da Música", uma loja especializada em instrumentos musicais localizada em Campo Grande, MS, Brasil.
 
 ---------------------------------------------------------------------
-DATABASE SCHEMA & RELATIONAL MAP
+ESTRUTURA DO BANCO DE DADOS (RELACIONAMENTOS)
 ---------------------------------------------------------------------
 - customers (customer_id, name, phone, email, city)
 - products (product_id, name, category_id, price_brl, stock_quantity, status, specs)
 - categories (category_id, name, description)
-- orders (order_id, customer_id, order_date, status, total_brl, payment_method, tracking_code, estimated_delivery)
-- order_items (order_id, product_id, quantity) -> Links orders to products (one order can contain multiple products)
-- promotions (promotion_id, product_id, discount_percent, description, is_active) -> Links promotions to products (is_active: 1=active, 0=expired)
+- orders (order_id, customer_id, order_date, status, total_brl, payment_method, tracking_code, estimated_delivery, notes)
+- order_items (order_id, product_id, quantity) -> Relaciona pedidos aos produtos
+- promotions (promotion_id, product_id, discount_percent, description, is_active) -> Relaciona promoções aos produtos (1=ativa, 0=expirada)
 
 ---------------------------------------------------------------------
-1. VOICE & PERSONALITY DIRECTIVES (SECTION 7.1)
+1. TOM DE VOZ E PERSONALIDADE (SEÇÃO 7.1)
 ---------------------------------------------------------------------
-- Tone: Informal yet professional, warm, and welcoming—like chatting with a knowledgeable friend who loves music.
-- Style: Avoid overly formal, rigid, or robotic phrasing. Use natural, friendly language.
+- Tom: Informal mas profissional, acolhedor e simpático — como conversar com um amigo especialista que ama música.
+- Estilo: Evite linguagem engessada, robótica ou excessivamente formal. Use um tom natural e solícito.
 
 ---------------------------------------------------------------------
-2. STORE SCOPE & BOUNDARIES (SECTION 7.1)
+2. ESCOPO E LIMITES DA LOJA (SEÇÃO 7.1)
 ---------------------------------------------------------------------
-- Exclusive Catalog: Empório da Música sells EXCLUSIVELY musical instruments (guitars, basses, drums, keyboards, woodwinds, brass, orchestral strings, ukuleles).
-- Out-of-Scope Items (Accessories): We DO NOT sell accessories (strings, cables, picks, pedals, amplifiers, instrument cases, gig bags). 
-  * Action: Politely explain this restriction and suggest checking local partner music stores.
+- Catálogo Exclusivo: O Empório da Música vende EXCLUSIVAMENTE instrumentos musicais (guitarras, baixos, violões, teclados, baterias, sopro, cordas orquestrais, ukuleles).
+- Itens Fora de Escopo (Acessórios): NÃO vendemos acessórios (cordas, palhetas, cabos, pedais, amplificadores, capas, cases).
+  * Ação: Explique educadamente que a loja vende apenas instrumentos. Ofereça a indicação de lojas parceiras locais em Campo Grande.
+  * REGRA OBRIGATÓRIA DE FRASAGEM: Sempre diga "Temos lojas parceiras de confiança na região que vendem esses itens". NUNCA diga "Somos parceiros de confiança".
 
 ---------------------------------------------------------------------
-3. SPECIAL OPERATIONAL SCENARIOS (SECTION 7.3)
+3. FLUXO DE ATENDIMENTO PADRÃO (SEÇÃO 7.2)
 ---------------------------------------------------------------------
-- Out-of-Stock Products: Inform the customer and immediately suggest available similar alternatives from active stock.
-- Expired Promotions: Check promotion status. If expired (is_active = 0), communicate transparently and state current table price.
-- Complaints: Listen with empathy, register the complaint, and state a return window of 24 business hours.
+1. Saudação: Cumprimentar o cliente com simpatia e perguntar como pode ajudar.
+2. Entendimento: Identificar a necessidade exata do cliente (busca de produto, dúvida de política, rastreamento, reclamação).
+3. Consulta: Verificar as informações relevantes no contexto fornecido (SQL para estoque/pedidos ou RAG para políticas).
+4. Resposta: Apresentar as opções de forma clara e objetiva. Ao listar produtos em estoque, mencione apenas se o produto está disponível (não precisa citar o número exato de unidades em estoque, a menos que haja poucas unidades).
+5. Fechamento: Confirmar se o cliente precisa de mais alguma coisa e encerrar com cordialidade.
+
+---------------------------------------------------------------------
+4. SITUAÇÕES ESPECIAIS (SEÇÃO 7.3)
+---------------------------------------------------------------------
+- Produto fora de estoque: Informar que o produto está temporariamente indisponível e sugerir alternativas semelhantes que estejam disponíveis no estoque ativo. Nunca confirmar disponibilidade sem verificar o estoque atual.
+- Produto descontinuado: Informar que o produto não faz mais parte do catálogo e oferecer modelos equivalentes ativos.
+- Promoções: Apresentar os descontos vigentes e ressaltar que os descontos não são cumulativos com outras ofertas.
+- Reclamações e Cancelamentos: Ouvir o cliente com empatia. Se houver informações de cancelamento no campo 'notes' do pedido, explique o motivo de forma transparente. Registre a insatisfação e informe que demandas formais de suporte possuem prazo de retorno de até 24 horas úteis.
+
+---------------------------------------------------------------------
+5. REGRAS GERAIS DE RESPOSTA
+---------------------------------------------------------------------
+- Responda SEMPRE em português do Brasil.
+- Baseie todas as afirmações ESTRITAMENTE nos dados recuperados do contexto fornecido.
 """
 
 
-def execute_sql(conn: sqlite3.Connection, query: str) -> str:
-    """Executes a SQL query and returns records formatted for LLM context."""
+def execute_sql(conn: sqlite3.Connection, query: str, params: tuple = ()) -> str:
+    """Executes a SQL query and returns records formatted as a string for LLM context."""
     try:
         cursor = conn.cursor()
-        cursor.execute(query)
+        cursor.execute(query, params)
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
 
         if not rows:
-            return "No matching records found in the database."
+            return "No matching records found in database."
 
         return str([dict(zip(columns, row)) for row in rows])
     except Exception as e:
@@ -57,111 +76,108 @@ def execute_sql(conn: sqlite3.Connection, query: str) -> str:
 
 
 class EmporioAgent:
+    """Customer service AI agent orchestrator for Empório da Música."""
 
     def __init__(self, data_dir: str = "data"):
         self.db = init_db(data_dir)
+        self.llm = GroqClient()
 
-    def get_order_details(self, order_id: str = None) -> str:
-        """Executes a SQL JOIN linking orders, order_items, and products."""
+    def get_order_by_id(self, order_id: str) -> str:
+        """Retrieves details for a specific order by order_id, including notes and customer info."""
         sql = """
             SELECT 
                 o.order_id, 
+                c.name AS customer_name,
+                c.email AS customer_email,
+                c.phone AS customer_phone,
                 o.order_date, 
                 o.status AS order_status, 
                 o.total_brl,
                 o.tracking_code,
                 o.estimated_delivery,
+                o.notes AS order_notes,
                 p.name AS product_name,
                 oi.quantity,
                 p.price_brl
             FROM orders o
+            LEFT JOIN customers c ON o.customer_id = c.customer_id
             JOIN order_items oi ON o.order_id = oi.order_id
             JOIN products p ON oi.product_id = p.product_id
-            LIMIT 5;
+            WHERE o.order_id = ?;
+        """
+        return execute_sql(self.db, sql, (order_id,))
+
+    def get_order_details(self) -> str:
+        """Retrieves a general list of recent orders."""
+        sql = """
+            SELECT o.order_id, o.order_date, o.status, o.total_brl, o.notes
+            FROM orders o LIMIT 5;
         """
         return execute_sql(self.db, sql)
 
     def get_active_promotions(self) -> str:
-        """Executes a SQL JOIN linking promotions and products."""
+        """Retrieves active promotions linked with product table."""
         sql = """
             SELECT 
                 p.name AS product_name,
                 p.price_brl AS original_price,
                 pr.discount_percent,
                 (p.price_brl * (1 - pr.discount_percent / 100.0)) AS promotional_price,
-                pr.description AS promo_description,
-                pr.is_active
+                pr.description AS promo_description
             FROM promotions pr
             JOIN products p ON pr.product_id = p.product_id
             WHERE pr.is_active = 1;
         """
         return execute_sql(self.db, sql)
 
-    def get_context_for_query(self, user_message: str) -> tuple[str, str]:
-        """Routes query intent and fetches raw system context (SQL or PDF RAG)."""
+    def get_context_for_query(self, user_message: str) -> str:
+        """Classifies query intent and retrieves context from SQLite database or PDF RAG."""
         msg_lower = user_message.lower()
 
-        # Policy & Store Info Queries (PDF RAG)
+        # Extract order ID from user message (e.g., "pedido 20", "código 8", "pedido de número 2")
+        order_match = re.search(r'\b(?:pedido|código|numero|número)\D*(\d+)\b', msg_lower)
+        if order_match:
+            order_id = order_match.group(1)
+            raw_order_context = self.get_order_by_id(order_id)
+            return f"REQUESTED ORDER {order_id} DETAILS:\n{raw_order_context}"
+
+        # Store Policies & Store Information Queries (PDF RAG with top_k=3 to span page breaks)
         policy_keywords = [
-            "troca",
-            "devolução",
-            "frete",
-            "entrega",
-            "pagamento",
-            "pix",
-            "cartão",
-            "horário",
-            "endereço",
-            "garantia",
-            "reclamação",
-            "return",
-            "shipping",
-            "payment",
-            "hours",
+            "troca", "devolução", "frete", "entrega", "pagamento", "pix",
+            "cartão", "horário", "endereço", "garantia", "reclamação",
+            "cidades", "outras cidades", "envio", "região", "sedex", "pac", "jadlog"
         ]
         if any(kw in msg_lower for kw in policy_keywords):
-            raw_pdf_context = search_store_policies(user_message, top_k=2)
+            raw_pdf = search_store_policies(user_message, top_k=3)
+            return f"STORE POLICY PDF CONTEXT:\n{raw_pdf}"
+
+        # Promotions (SQL JOIN + Policy Rules)
+        if any(kw in msg_lower for kw in ["promoção", "promoções", "desconto", "oferta"]):
+            raw_promo = self.get_active_promotions()
+            promo_rules = search_store_policies("promoção desconto regras", top_k=1)
             return (
-                "RAG_PDF",
-                f"STORE POLICY PDF CONTEXT:\n{raw_pdf_context}",
+                f"ACTIVE PROMOTIONS CONTEXT:\n{raw_promo}\n\n"
+                f"PROMOTION POLICY RULES:\n{promo_rules}"
             )
 
-        # Promotion Queries (SQL JOIN promotions + products)
-        if any(kw in msg_lower for kw in ["promoção", "desconto", "oferta"]):
-            raw_promo_context = self.get_active_promotions()
-            return (
-                "SQL_PROMOTIONS",
-                f"ACTIVE PROMOTIONS CONTEXT:\n{raw_promo_context}",
-            )
+        # General Orders List
+        if any(kw in msg_lower for kw in ["pedido", "rastreio", "status", "comprado"]):
+            return f"RECENT ORDERS CONTEXT:\n{self.get_order_details()}"
 
-        # Order Status Queries (SQL JOIN orders + order_items + products)
-        if any(kw in msg_lower
-               for kw in ["pedido", "rastreio", "status", "comprado", "order"]):
-            raw_order_context = self.get_order_details()
-            return (
-                "SQL_ORDERS",
-                f"ORDER DETAILS CONTEXT:\n{raw_order_context}",
-            )
-
-        # Inventory / Product Catalog Queries
-        if any(kw in msg_lower
-               for kw in ["estoque", "disponível", "preço", "quanto custa", "valor", "guitarra", "violão", "teclado", "bateria"]):
+        # Active Product Catalog / Inventory Queries
+        if any(kw in msg_lower for kw in ["estoque", "disponível", "preço", "quanto custa", "valor", "guitarra", "violão", "teclado", "bateria", "ukulele"]):
             sql = (
                 "SELECT p.name, p.price_brl, p.stock_quantity, c.name as category "
                 "FROM products p JOIN categories c ON p.category_id = c.category_id "
-                "WHERE p.status = 'active' LIMIT 5;"
+                "WHERE p.status = 'active' LIMIT 40;"
             )
-            raw_db_context = execute_sql(self.db, sql)
-            return (
-                "SQL_INVENTORY",
-                f"INVENTORY CONTEXT:\n{raw_db_context}",
-            )
+            return f"ACTIVE INVENTORY CONTEXT:\n{execute_sql(self.db, sql)}"
 
-        return "GENERAL", "No external context retrieval required."
+        return "No external context retrieval required."
 
-    def process_message(self, user_message: str) -> str:
-        """Constructs complete payload ready for LLM API invocation."""
-        context_type, context_data = self.get_context_for_query(user_message)
+    def answer_customer(self, user_message: str) -> str:
+        """Retrieves system context, constructs prompt payload, and generates LLM response."""
+        context_data = self.get_context_for_query(user_message)
 
         prompt_payload = (
             f"{SYSTEM_PROMPT}\n\n"
@@ -172,26 +188,34 @@ class EmporioAgent:
             f"Assistant Response:"
         )
 
-        return prompt_payload
+        return self.llm.generate_response(prompt_payload)
 
 
 if __name__ == "__main__":
+    import time
+
     agent = EmporioAgent()
 
     test_messages = [
-        "Vocês vendem encordoamento e palhetas?",
+        "Vocês vendem cordas e palhetas?",
         "Qual a política de devolução por arrependimento?",
-        "Quais promoções estão ativas na loja?",
-        "Qual o status e os itens do meu pedido?",
+        "Quais violões com corda de nylon estão disponíveis no estoque e quais os preços?",
+        "Qual o horário de funcionamento da loja física?",
+        "Quais itens estão na promoção?",
+        "Gostaria de fazer uma reclamação, porque meu pedido de código 20 foi cancelado?",
+        "Gostaria de saber sobre o meu pedido de número 2",
+        "Vocês possuem o violão da Shelby com cordas de Nylon?",
+        "Como funciona a entrega para outras cidades?",
     ]
 
     print("=" * 70)
-    print("      RELATIONAL SCHEMA & ORCHESTRATOR TEST")
+    print("      EMPORIO DA MÚSICA - LIVE AGENT TEST")
     print("=" * 70)
 
     for msg in test_messages:
-        print(f"\n[CUSTOMER]: '{msg}'")
+        print(f"\n[CUSTOMER]: {msg}")
         print("-" * 50)
-        payload = agent.process_message(msg)
-        print(payload[:550] + "\n... [payload truncated for preview]")
+        response = agent.answer_customer(msg)
+        print(f"[ASSISTANT]:\n{response}")
         print("-" * 50)
+        time.sleep(2)  # Short pause between batch requests to respect OTPM limits
