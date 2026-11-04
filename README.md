@@ -22,24 +22,28 @@ Mapping the relationships between entities is the foundational step in consolida
 
 - **In-Memory SQLite Engine**: Operational CSV files (`categories`, `customers`, `orders`, `order_items`, `products`, `promotions`) are ingested into an in-memory SQLite database (`:memory:`) upon application startup. This provides zero-dependency, fast SQL querying for function-calling tools.
 - **Categorical ID Handling**: Identifier fields (`customer_id`, `order_id`, `product_id`, `category_id`, `promotion_id`) are explicitly treated as string dimensions rather than numeric metrics. This prevents unintended mathematical aggregations and ensures consistency across LLM function calls.
-- **Relational Integrity**: While SQLite ingests raw CSV DataFrames, relational joins (`JOIN` queries on primary and foreign keys) are enforced directly within the Python analytical tools used by the agent to ensure accurate data extraction.
+- **Relational Integrity & Attribute Extraction**: Enforces multi-table SQL `JOIN` queries. Products extraction includes the `specs` column (storing JSON technical attributes such as color, key counts, and wood types) to fulfill detailed product inquiries.
 
 ### Policy Retrieval Layer / RAG (`src/tools.py`)
 
 - **Continuous Document Ingestion & Cleaning**: Utilizes `pypdf` to extract raw text page-by-page from `data/politicas_da_loja.pdf`. Recurring header and footer noise (`Empório da Música Manual de Políticas...`, `Página X`) are automatically stripped using regular expressions, merging the entire manual into a clean, unified text stream.
-- **Sliding-Window Chunking with Overlap**: Replaced rigid page-based chunking with a continuous sliding window (`chunk_size=900`, `overlap=250`). This design eliminates cross-page boundaries, ensuring multi-page tables and contiguous sections are preserved within shared chunks.
-- **Stem-Based Relevance Retrieval**: Implements keyword tokenization with basic word stem matching (e.g., handling singular/plural query variations like `garantia` / `garantias`). Scores and retrieves the top $k$ relevant chunks for prompt synthesis.
+- **Sliding-Window Chunking with Overlap**: Replaced rigid page-based chunking with a continuous sliding window (`chunk_size=900`, `overlap=250`). This design eliminates cross-page boundaries, ensuring multi-page tables (such as Section 5.2 shipping tables spanning pages 4 and 5) are preserved within shared chunks.
+- **Stem-Based Relevance Retrieval**: Implements keyword tokenization with basic word stem matching (e.g., handling singular/plural query variations like `garantia` / `garantias`). Scores and retrieves top-matching relevant chunks for prompt synthesis.
 
-### LLM Provider Integration & Rate Limit Handling (`src/llm.py`)
+### LLM Provider Integration & Resiliency (`src/llm.py`)
 
-- **Provider Transition (Gemini to Groq)**: Migrated LLM orchestration from Google Gemini API (`gemini-2.0-flash`) to Groq API using the high-performance `qwen/qwen3.8-27b` model, providing fast execution times and reliable inference.
-- **Rate Limit & Resiliency Handling**:
-  - **Output Token Budgeting (`max_tokens=600`)**: Capped response output tokens below Groq's free tier Output Tokens Per Minute (OTPM 1,000) ceiling, preventing quota rejection.
-  - **Auto-Retry & Backoff**: Retained and adapted exception handling logic across provider migrations — handling 503 server unavailability during Gemini testing and 429 rate limits on Groq via automated retry loops (`time.sleep(3)`).
-  - **Test Suite Pacing**: Added inter-request delay intervals (`time.sleep(2)`) in test runners to maintain execution within Per-Minute limits (RPM/TPM).
+- **Provider Transition (Gemini to Groq)**: Migrated LLM orchestration from Google Gemini API to Groq API using the high-performance `qwen/qwen3.8-27b` model, delivering fast execution times and reliable inference.
+- **Rate Limit & Server Fault Resiliency**:
+  - **Output Token Budgeting (`max_tokens=700`)**: Explicitly capped output tokens to fit within Groq's Output Tokens Per Minute (OTPM 1,000) free-tier ceiling while preventing truncated response lists.
+  - **Auto-Retry & Backoff (429 & 5xx)**: Integrated automatic exception handling for HTTP 429 (Rate Limit) and 5xx (Internal Server Error / Gateway Timeout) with exponential backoff (`time.sleep(3)`), ensuring uninterrupted session execution.
 
 ### Agent Persona & Orchestration Layer (`src/agent.py`)
 
-- **Portuguese Policy-Grounded System Prompt**: Incorporates Section 7 store policy guidelines directly into the agent's core prompt in Brazilian Portuguese. Enforces a warm, music-focused persona, a structured 5-step customer service flow, strict catalog boundaries (excluding accessories with mandatory partner redirection wording), and deterministic protocols for out-of-stock items, expired promotions, and complaint handling (24 business hours SLA).
-- **Regex Order ID Extraction & Schema Awareness**: Uses regex patterns to capture explicit order IDs (e.g., `pedido`, `número`) and queries the `orders` database table including `notes` fields to transparently report cancellation root causes.
-- **Dynamic Intent Routing**: Implements query intent classification in `EmporioAgent` to route user inquiries to the appropriate context provider (SQLite queries for stock/orders vs. PDF RAG chunks for store rules).
+- **Portuguese Policy-Grounded System Prompt**: Incorporates Section 7 store policy guidelines directly into the agent's core prompt in Brazilian Portuguese. Enforces a warm persona, a structured customer service flow, strict catalog boundaries (excluding accessories with mandatory partner redirection wording), compact single-line list formatting rules, and deterministic protocols for complaints (24 business hours SLA).
+- **Multi-Turn Session Memory**: Maintains conversational history across user interaction turns, allowing context persistence when customers specify order information (e.g., providing customer name or email after asking for order status).
+- **Flexible Order Lookup**: Supports regex extraction for numeric order IDs as well as fuzzy string matching against customer names (`c.name LIKE ?`), emails, and phone numbers in the database.
+- **Dynamic Intent Routing**: Classifies query intents and routes user inquiries to the corresponding context provider (SQLite queries for stock/orders vs. PDF RAG chunks for store rules).
+
+### Interactive Terminal Entry Point (`main.py`)
+
+- **Real-Time CLI Shell**: Provides an interactive terminal interface (`main.py`) allowing real-time chat with `EmporioAgent`, handling user inputs, session termination (`exit` / `sair`), and graceful interrupt exceptions.

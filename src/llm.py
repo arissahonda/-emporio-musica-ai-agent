@@ -8,7 +8,7 @@ load_dotenv()
 
 
 class GroqClient:
-    """Wrapper class for managing client interactions with Groq API with rate-limit resiliency."""
+    """Wrapper class for managing client interactions with Groq API with rate-limit and server resilience."""
 
     def __init__(self, model_name: str = None):
         api_key = os.getenv("GROQ_API_KEY")
@@ -23,7 +23,7 @@ class GroqClient:
     def generate_response(
         self, prompt_payload: str, max_retries: int = 3, delay: float = 3.0
     ) -> str:
-        """Sends prompt payload to Groq API with max_tokens control and 429 retry handling."""
+        """Sends prompt payload to Groq API with max_tokens control and 429/5xx retry handling."""
         for attempt in range(1, max_retries + 1):
             try:
                 chat_completion = self.client.chat.completions.create(
@@ -35,17 +35,18 @@ class GroqClient:
                     ],
                     model=self.model_name,
                     temperature=0.1,
-                    max_tokens=600,  # Caps reservation under the 1000 OTPM rate-limit
+                    max_tokens=700,  # Sized for compact lists without hitting OTPM rate limits
                 )
                 return chat_completion.choices[0].message.content
             except Exception as e:
                 error_msg = str(e)
 
-                # Handle 429 Rate Limit
-                if "429" in error_msg or "rate_limit_exceeded" in error_msg:
+                # Retry on Rate Limit (429) or Temporary Server Errors (500, 502, 503, 504)
+                transient_errors = ["429", "500", "502", "503", "504", "rate_limit_exceeded", "internal_server_error"]
+                if any(err in error_msg.lower() for err in transient_errors):
                     if attempt < max_retries:
                         print(
-                            f"⚠️ [Attempt {attempt}/{max_retries}] Rate limit hit (429). Retrying in {delay}s..."
+                            f"⚠️ [Attempt {attempt}/{max_retries}] API Error ({error_msg}). Retrying in {delay}s..."
                         )
                         time.sleep(delay)
                         continue
