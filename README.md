@@ -34,7 +34,9 @@ Mapping the relationships between entities is the foundational step in consolida
 
 ### Agent Persona & Orchestration Layer (`src/agent.py`)
 
-- **Policy-Grounded System Prompt**: Incorporates Section 7 store policy guidelines directly into the agent's core instructions. Enforces a warm, music-focused persona ("knowledgeable friend"), a structured 5-step customer service flow, strict catalog boundaries (excluding accessories like strings, picks, or amps with partner redirection), and deterministic protocols for out-of-stock items, expired promotions, and complaint handling (24 business hours SLA).
+- **Policy-Grounded System Prompt**:  Incorporates Section 7 store policy guidelines directly into the agent's core instructions. Enforces a warm, music-focused persona ("knowledgeable friend"), a structured 5-step customer service flow, strict catalog boundaries (excluding accessories and redirecting to a partner), and deterministic protocols for out-of-stock items, expired promotions, and complaint handling (24 business hours SLA).
+
+- **Relational Schema Awareness & SQL Joins**:  Embeds explicit database ER schema documentation directly inside the system prompt and provides specialized Python tools executing multi-table JOIN queries (e.g., joining orders, order_items, and products, or promotions and products) to ensure precise relational context retrieval.
 
 - **Dynamic Intent Routing**: Implements query intent classification in `EmporioAgent` to route user inquiries to the appropriate context provider (SQL database for stock/orders vs. PDF RAG for store rules).
 
