@@ -26,7 +26,6 @@ Prototype of an intelligent customer service agent developed in Python for "Emp√
     .\.venv\Scripts\Activate.ps1
     ```
     - Linux/ macOS:
-     - Windows:
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
@@ -62,7 +61,7 @@ Mapping the relationships between entities is the foundational step in consolida
 
 ### Framework & Architecture Approach
 
-- **Vanilla Python / Custom Native Orchestration:** Instead adopting heavy orchestration frameworks (such as LangChain or LlamaIndex), the agent was built using native Python logic. This keeps dependencies minimal, eliminates hidden abstraction layers, speeds up execution time, and provides full control over context assembly and prompt engineering.
+- **Vanilla Python / Custom Native Orchestration:** Instead of adopting heavy orchestration frameworks (such as LangChain or LlamaIndex), the agent was built using native Python logic. This keeps dependencies minimal, eliminates hidden abstraction layers, speeds up execution time, and provides full control over context assembly and prompt engineering.
 
 - **Hybrid Retrieval Architecture (SQL + PDF RAG):**
 
@@ -91,7 +90,7 @@ Mapping the relationships between entities is the foundational step in consolida
 ### Conversation Persistence & Multi-Turn Context (`src/agent.py`)
 
 - **In-Memory Session History**: Maintains recent conversation turns within `EmporioAgent`. This allows context retention across interaction turns (e.g., retrieving an order when a customer provides their name in a follow-up message after asking about an order).
-- **Flexible Order Lookup**: Supports both regex-based numeric Order ID extraction and fuzzy database matching on customer names, emails, and phone numbers. Since it doens't have an especific order number, we use the order_id to simulate the scenarios where a client would request to know the status of their order only with the order number.
+- **Flexible Order Lookup**: Supports both regex-based numeric Order ID extraction and fuzzy database matching on customer names, emails, and phone numbers. Since it doesn't have an specific order number, we use the order_id to simulate the scenarios where a client would request to know the status of their order only with the order number.
 
 ### Interactive Terminal Entry Point (`main.py`)
 
